@@ -54,18 +54,22 @@ parse_success = true
 
 ### 2.3 Windows 锁屏时能否读取？
 
-**常驻进程属于交互会话，具备锁屏运行条件，但本阶段没有实际锁屏验证
-新 reader。**
+**可以，已实际验证。**
 
-计划任务方案曾使用：
+2026-11-06 17:27:59 执行真实锁屏读取，读取前后均为：
 
 ```text
-LogonType = InteractiveToken
-RunLevel = LeastPrivilege
+workstation_locked = true
+logon_ui_running = true
+WeChatAppEx running = true
+"厦大体育" window minimized = true
+reader exit code = 0
+data_source = mini_program_live
+parse_success = true
 ```
 
-这类任务属于当前登录会话，可在锁屏状态下运行。实际能否读取还取决于锁屏后
-Windows 是否继续向 UI Automation 暴露微信 WebView 控件，必须单独实测。
+锁屏状态下成功读取 2026-11-06 和 2026-11-07 两个日期。这里只覆盖“锁屏但
+电脑仍运行”；睡眠或休眠会暂停进程，不能继续监控。
 
 ### 2.4 是否依赖用户交互会话？
 

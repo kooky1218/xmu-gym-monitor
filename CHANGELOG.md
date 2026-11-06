@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] - 2026-11-06
+
+### Fixed
+
+- Manual dashboard refresh now immediately runs availability matching and Bark
+  delivery instead of waiting for the next background interval.
+- SQLite connections are closed deterministically on Windows, preventing test
+  and temporary-database file locks.
+- Bark availability, test, and system notifications no longer include URLs.
+- Bark requests no longer inherit an invalid system proxy by default.
+
+### Verified
+
+- Real Windows lock-screen monitoring with `LogonUI.exe` active.
+- Minimized mini-program monitoring.
+- Pillow-free multi-resolution Windows icon generation and circular masking.
+
 ## [1.0.0] - 2026-11-06
 
 ### Added

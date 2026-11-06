@@ -22,7 +22,7 @@
 结果：
 
 ```text
-Ran 80 tests
+Ran 82 tests
 OK
 ```
 
@@ -39,8 +39,10 @@ OK
 - 日期级开放不虚构剩余名额；
 - 选择场次页 `selected/capacity` 解析；
 - 正式空位通知去重和冷却；
+- 手动刷新直接触发 Bark 空位通知；
 - 缓存不触发正式通知；
 - Bark 测试；
+- Bark 通知不携带 URL；
 - PySide6 离屏冒烟测试。
 
 ## 3. 真实小程序只读扫描
@@ -115,6 +117,22 @@ HTML 源码确认“暂无 / 预定”来自 `is_subscribe` 条件；本次没�
 读取后窗口状态：仍为最小化
 ```
 
+### 锁屏读取
+
+2026-11-06 17:27:59 执行真实 Windows 锁屏测试。读取前后均为：
+
+```text
+workstation_locked=true
+logon_ui_running=true
+"厦大体育"窗口：最小化
+reader_exit_code=0
+data_source=mini_program_live
+parse_success=true
+```
+
+成功读取 2026-11-06 和 2026-11-07。只要 Windows 用户仍处于登录会话且电脑
+没有睡眠，锁屏不会阻止 UI Automation 读取。
+
 ## 5. 后台单次任务
 
 结果：
@@ -187,7 +205,7 @@ Windows Credential Manager 中已存在 Bark Key。测试过程只检查
 
 ## 8. 未完成或需持续观察
 
-1. 未实际锁屏验证 UI Automation 是否能继续读取。
+1. 睡眠或休眠会暂停进程，当前版本不能在睡眠期间监控或提醒。
 2. 尚未观察到真实“预定”页面，因此选场页解析只有合成固定数据测试。
 3. 小程序登录失效后的自动恢复，目前是下一轮任务重试加 Bark 异常提醒，
    不是自动输入账号密码。

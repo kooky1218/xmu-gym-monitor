@@ -46,11 +46,7 @@ class MonitorConfig:
     notify_on_system_error: bool = True
     system_error_cooldown_minutes: int = 60
     bark_service_url: str = "https://api.day.app"
-    notification_jump_url: str = (
-        "https://xdty.xmu.edu.cn/"
-        "bdlp_h5_fitness_test/view/stadium/"
-        "detail.html?id=16&category_id=8"
-    )
+    notification_jump_url: str = ""
 
     def validate(self) -> None:
         if self.stadium_id <= 0:

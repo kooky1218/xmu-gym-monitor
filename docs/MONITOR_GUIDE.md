@@ -21,7 +21,8 @@
 ```
 
 界面启动后会按 `check_interval_minutes` 自动刷新，并显示“自动刷新：每 5
-分钟”。“刷新数据”按钮仍可用于立即手动刷新。
+分钟”。“刷新数据”按钮仍可用于立即手动刷新；手动刷新成功读取后也会立即
+执行空位匹配和 Bark 通知，不需要等待下一轮后台检查。
 
 点击窗口最小化或关闭按钮时，界面会隐藏到 Windows 右下角托盘，不会停止
 自动刷新或后台监控。双击托盘图标可以恢复窗口；右键菜单提供“打开监控”、
@@ -70,7 +71,7 @@ config/monitor_config.json
   "notify_on_system_error": true,
   "system_error_cooldown_minutes": 60,
   "bark_service_url": "https://api.day.app",
-  "notification_jump_url": "https://xdty.xmu.edu.cn/..."
+  "notification_jump_url": ""
 }
 ```
 

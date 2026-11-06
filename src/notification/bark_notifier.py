@@ -42,6 +42,7 @@ class BarkNotifier:
         retry_base_seconds: float = 2.0,
         retry_max_seconds: float = 30.0,
         session: requests.Session | None = None,
+        trust_env: bool = False,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         if not service_url.startswith(("https://", "http://")):
@@ -56,7 +57,7 @@ class BarkNotifier:
         self.retry_max_seconds = max(0.0, retry_max_seconds)
         self.session = session or requests.Session()
         if session is None:
-            self.session.trust_env = True
+            self.session.trust_env = trust_env
         self.sleep = sleep
         self._recent_messages: dict[str, float] = {}
 

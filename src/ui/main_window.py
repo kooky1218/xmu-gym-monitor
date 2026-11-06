@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 from src.api.cache import CacheError
 from src.api.stadium_reader import StadiumReader, StadiumReaderError
 from src.monitor.config import MonitorConfig, MonitorConfigError
+from src.service.background_worker import process_snapshot_notifications
 from src.ui.monitor_settings import MonitorSettingsDialog
 
 
@@ -60,9 +61,15 @@ class RefreshWorker(QObject):
     failed = Signal(object)
     finished = Signal()
 
-    def __init__(self, reader: StadiumReader) -> None:
+    def __init__(
+        self,
+        reader: StadiumReader,
+        *,
+        notify_after_read: bool = False,
+    ) -> None:
         super().__init__()
         self.reader = reader
+        self.notify_after_read = notify_after_read
 
     @Slot()
     def run(self) -> None:
@@ -93,6 +100,30 @@ class RefreshWorker(QObject):
                 }
             )
         else:
+            if self.notify_after_read:
+                try:
+                    monitor_result = process_snapshot_notifications(snapshot)
+                    snapshot = dict(snapshot)
+                    snapshot["manual_monitor_result"] = {
+                        "exit_code": monitor_result.exit_code,
+                        "status": monitor_result.status,
+                        "error_type": monitor_result.error_type,
+                        "message": monitor_result.message,
+                        "data_source": monitor_result.data_source,
+                        "matched_count": monitor_result.matched_count,
+                        "notification_count": (
+                            monitor_result.notification_count
+                        ),
+                    }
+                    logging.getLogger(__name__).info(
+                        "手动刷新通知检查完成：status=%s notified=%d",
+                        monitor_result.status,
+                        monitor_result.notification_count,
+                    )
+                except Exception:
+                    logging.getLogger(__name__).exception(
+                        "手动刷新后的通知检查失败"
+                    )
             self.succeeded.emit(snapshot)
         finally:
             self.finished.emit()
@@ -296,6 +327,9 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def refresh(self) -> None:
+        self._start_refresh(notify_after_read=True)
+
+    def _start_refresh(self, *, notify_after_read: bool) -> None:
         if self.thread is not None:
             return
 
@@ -305,10 +339,16 @@ class MainWindow(QMainWindow):
         self.source_value.setText("等待服务器响应")
         self.cache_age_value.setText("-")
         self.http_status_value.setText("-")
-        logging.getLogger(__name__).info("开始手动刷新健身房数据")
+        logging.getLogger(__name__).info(
+            "开始%s刷新健身房数据",
+            "手动" if notify_after_read else "自动",
+        )
 
         self.thread = QThread(self)
-        self.worker = RefreshWorker(self.reader)
+        self.worker = RefreshWorker(
+            self.reader,
+            notify_after_read=notify_after_read,
+        )
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.succeeded.connect(self._handle_success)
@@ -346,7 +386,7 @@ class MainWindow(QMainWindow):
         )
         if (self.isVisible() or tray_active) and self.thread is None:
             logging.getLogger(__name__).info("开始自动刷新健身房数据")
-            self.refresh()
+            self._start_refresh(notify_after_read=False)
 
     def _setup_tray_icon(self) -> None:
         app = QApplication.instance()
@@ -451,10 +491,22 @@ class MainWindow(QMainWindow):
     @Slot(object)
     def _handle_success(self, snapshot: dict[str, Any]) -> None:
         self.current_snapshot = snapshot
+        result_text = "读取成功（小程序实时页面）"
+        result_color = "#176b3a"
+        monitor_result = snapshot.get("manual_monitor_result") or {}
+        monitor_status = monitor_result.get("status")
+        if monitor_status == "NOTIFIED":
+            result_text = "读取成功，已发送 Bark 空位通知"
+        elif monitor_status in {
+            "NOTIFICATION_NOT_CONFIGURED",
+            "NOTIFICATION_PARTIAL_FAILURE",
+        }:
+            result_text = "读取成功，但 Bark 通知未完成"
+            result_color = "#8a5a00"
         self._render_snapshot(
             snapshot,
-            result_text="读取成功（小程序实时页面）",
-            result_color="#176b3a",
+            result_text=result_text,
+            result_color=result_color,
             cache_mode=False,
         )
         self._set_auth_banner(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import contextlib
 import json
 import logging
@@ -477,6 +478,37 @@ class MonitorRunner:
         return result
 
 
+class SnapshotOnlyReader:
+    """Return an already fetched snapshot without issuing another request."""
+
+    def __init__(self, snapshot: dict[str, Any]) -> None:
+        self.snapshot = copy.deepcopy(snapshot)
+
+    def read_gym_snapshot(self, **_kwargs: Any) -> dict[str, Any]:
+        return copy.deepcopy(self.snapshot)
+
+
+def process_snapshot_notifications(
+    snapshot: dict[str, Any],
+    *,
+    config_path: Path | str = DEFAULT_CONFIG_PATH,
+    database_path: Path | str = DEFAULT_DATABASE_PATH,
+    credential_store: Any | None = None,
+    notifier: NotifierLike | None = None,
+) -> RunResult:
+    """Run matching and notification delivery for an existing GUI snapshot."""
+
+    config = MonitorConfig.load(config_path)
+    runner = MonitorRunner(
+        config=config,
+        database=MonitorStateDatabase(database_path),
+        reader=SnapshotOnlyReader(snapshot),
+        credential_store=credential_store,
+        notifier=notifier,
+    )
+    return runner.run_once()
+
+
 def simulate_notification(
     config: MonitorConfig,
     *,
@@ -514,7 +546,7 @@ def simulate_notification(
         sent = actual_notifier.send(
             title="【测试】厦大健身房空位监控",
             body=body,
-            url=config.notification_jump_url or None,
+            url=None,
             dedup_seconds=0,
         )
     except Exception as exc:

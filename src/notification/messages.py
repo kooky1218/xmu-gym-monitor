@@ -32,7 +32,7 @@ def build_availability_notification(
         )
         if slot.area_name:
             body += f"\n场地：{slot.area_name}"
-    return title, body, config.notification_jump_url or None
+    return title, body, None
 
 
 def build_system_error_notification(

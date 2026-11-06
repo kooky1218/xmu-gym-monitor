@@ -121,9 +121,9 @@ class MainWindowSmokeTests(unittest.TestCase):
         window = MainWindow(FakeReader())
         window.tray_icon = SimpleNamespace(isVisible=lambda: True)
         window.hide()
-        with patch.object(window, "refresh") as refresh:
+        with patch.object(window, "_start_refresh") as start_refresh:
             window._auto_refresh()
-        refresh.assert_called_once_with()
+        start_refresh.assert_called_once_with(notify_after_read=False)
         window._allow_quit = True
         window.close()
         window.deleteLater()

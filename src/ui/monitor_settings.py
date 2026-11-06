@@ -425,7 +425,7 @@ class MonitorSettingsDialog(QDialog):
         self.test_worker = BarkTestWorker(
             service_url=config.bark_service_url,
             device_key=key,
-            jump_url=config.notification_jump_url or None,
+            jump_url=None,
         )
         self.test_worker.moveToThread(self.test_thread)
         self.test_thread.started.connect(self.test_worker.run)

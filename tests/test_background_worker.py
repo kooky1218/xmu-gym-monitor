@@ -15,6 +15,7 @@ from src.notification.bark_notifier import BarkNotificationResult
 from src.service.background_worker import (
     InstanceAlreadyRunning,
     MonitorRunner,
+    process_snapshot_notifications,
     run_daemon,
     single_instance_lock,
     simulate_notification,
@@ -125,6 +126,7 @@ class BackgroundWorkerTests(unittest.TestCase):
         self.assertEqual(result.notification_count, 1)
         self.assertEqual(len(notifier.calls), 1)
         self.assertIn("剩余名额：3", notifier.calls[0]["body"])
+        self.assertIsNone(notifier.calls[0].get("url"))
 
     def test_date_entry_notification_does_not_claim_remaining_count(
         self,
@@ -152,6 +154,26 @@ class BackgroundWorkerTests(unittest.TestCase):
         self.assertIn("预约入口开放", notifier.calls[0]["title"])
         self.assertIn("请打开厦大体育小程序选择时段", notifier.calls[0]["body"])
         self.assertNotIn("剩余名额：", notifier.calls[0]["body"])
+
+    def test_existing_snapshot_can_trigger_manual_notification(
+        self,
+    ) -> None:
+        config_path = Path(self.temp.name) / "manual-config.json"
+        database_path = Path(self.temp.name) / "manual.sqlite3"
+        self.config.save(config_path)
+        notifier = FakeNotifier()
+        result = process_snapshot_notifications(
+            snapshot(),
+            config_path=config_path,
+            database_path=database_path,
+            credential_store=object(),
+            notifier=notifier,
+        )
+        self.assertEqual(result.status, "NOTIFIED")
+        self.assertEqual(result.notification_count, 1)
+        self.assertEqual(len(notifier.calls), 1)
+        self.assertIn("18:00-19:00", notifier.calls[0]["body"])
+        self.assertIsNone(notifier.calls[0].get("url"))
 
     def test_mock_and_cache_only_enter_test_mode(self) -> None:
         for source in ("mock", "cache"):
@@ -246,6 +268,7 @@ class BackgroundWorkerTests(unittest.TestCase):
         self.assertEqual(result.status, "SIMULATION_SENT")
         self.assertEqual(len(notifier.calls), 1)
         self.assertIn("测试模式", notifier.calls[0]["body"])
+        self.assertIsNone(notifier.calls[0].get("url"))
 
     def test_single_instance_lock_rejects_second_owner(self) -> None:
         lock_path = Path(self.temp.name) / "monitor.lock"

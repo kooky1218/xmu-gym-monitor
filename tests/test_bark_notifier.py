@@ -78,6 +78,14 @@ class BarkNotifierTests(unittest.TestCase):
             sleep=(sleeps.append if sleeps is not None else lambda _: None),
         )
 
+    def test_default_session_does_not_inherit_invalid_proxy(self) -> None:
+        notifier = BarkNotifier(
+            service_url="https://api.day.app",
+            device_key="test-device-key",
+        )
+        self.assertFalse(notifier.session.trust_env)
+        notifier.session.close()
+
     def test_success_uses_official_push_endpoint_and_payload(self) -> None:
         session = FakeSession([FakeResponse()])
         result = self.make_notifier(session).send(
