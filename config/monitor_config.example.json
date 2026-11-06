@@ -1,0 +1,17 @@
+{
+  "stadium_id": 16,
+  "category_id": 8,
+  "campus": "翔安校区",
+  "stadium_name": "爱秋体育馆健身房",
+  "timezone": "Asia/Shanghai",
+  "check_interval_minutes": 5,
+  "min_remaining": 1,
+  "target_dates": ["2026-11-06", "2026-11-07"],
+  "target_slots": ["18:00-19:00", "19:00-20:00"],
+  "enabled": false,
+  "notification_cooldown_minutes": 30,
+  "notify_on_system_error": true,
+  "system_error_cooldown_minutes": 60,
+  "bark_service_url": "https://api.day.app",
+  "notification_jump_url": "https://xdty.xmu.edu.cn/bdlp_h5_fitness_test/view/stadium/detail.html?id=16&category_id=8"
+}

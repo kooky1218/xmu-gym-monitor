@@ -1,0 +1,5 @@
+requests>=2.31,<3
+PySide6>=6.7,<7
+keyring>=25,<27
+websocket-client>=1.8,<2
+uiautomation>=2.0,<3

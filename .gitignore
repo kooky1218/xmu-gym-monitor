@@ -1,0 +1,34 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local runtime data and logs
+cache/
+data/
+logs/
+work/
+*.sqlite3
+*.sqlite3-*
+*.log
+*.log.*
+*.jsonl
+
+# User-specific configuration
+config/monitor_config.json
+
+# Local shortcuts and generated releases
+*.lnk
+release/
+dist/
+build/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
